@@ -5,6 +5,9 @@ IniPath := A_ScriptDir "\config.ini"
 KeyStates := Map()      ; Lưu trạng thái thực tế: KeyName => 1 (Enable) hoặc 0 (Disable)
 KeyLabels := Map()      ; Ánh xạ tên hiển thị trên menu => KeyName chuẩn
 KeysSubMenu := Menu()   ; Menu con chứa danh sách phím
+; --- Cấu hình tên shortcut trong thư mục Startup ---
+StartupMenuLabel := "Tự khởi động cùng Windows"
+ShortcutPath := A_Startup "\KeyBlocker.lnk"
 
 ; Tạo file config.ini mặc định nếu chưa tồn tại
 if !FileExist(IniPath) {
@@ -77,7 +80,13 @@ LoadConfigAndBuildMenu() {
     A_TrayMenu.Add("Mở file config.ini", (*) => Run('notepad.exe "' IniPath '"'))
     A_TrayMenu.Add("Reload script", (*) => Reload())
     A_TrayMenu.Default := "Reload script"
-
+	A_TrayMenu.Add(StartupMenuLabel, ToggleStartupHandler)
+	if FileExist(ShortcutPath)
+		A_TrayMenu.Check(StartupMenuLabel)
+	else
+		A_TrayMenu.Uncheck(StartupMenuLabel)
+	
+	
     TrayTip("KeyBlocker đã chạy", "Đang chặn " BlockedCount " / " KeyStates.Count " phím.", 2)
 }
 
@@ -133,4 +142,27 @@ SetKeyBlockState(KeyName, ShouldBlock) {
 
 BlockKey(ThisHotkey) {
     return
+}
+
+ToggleStartupHandler(ItemName, ItemPos, MyMenu) {
+    global ShortcutPath
+
+    if FileExist(ShortcutPath) {
+        try {
+            FileDelete(ShortcutPath)
+            MyMenu.Uncheck(ItemName)
+            TrayTip("KeyBlocker", "Đã tắt tự khởi động cùng Windows.", 1)
+        } catch as err {
+            MsgBox("Không thể xóa shortcut khởi động:`n" err.Message, "Lỗi", "Iconx")
+        }
+    } else {
+        try {
+            ; Tham số thứ 3 (A_ScriptDir) giúp giữ đúng thư mục chứa config.ini
+            FileCreateShortcut(A_ScriptFullPath, ShortcutPath, A_ScriptDir, "", "KeyBlocker AutoStart")
+            MyMenu.Check(ItemName)
+            TrayTip("KeyBlocker", "Đã bật tự khởi động cùng Windows.", 1)
+        } catch as err {
+            MsgBox("Không thể tạo shortcut khởi động:`n" err.Message, "Lỗi", "Iconx")
+        }
+    }
 }
