@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 #HotIf WinActive("Microsoft Visual Basic")
 
-; Phím F4 chỉ có tác dụng khi đang ở trong cửa sổ code VBA
+; Phím Ctrl+Shift+V chỉ có tác dụng khi đang ở trong cửa sổ code VBA
 ^+v:: {
     ; Hiện hộp nhập liệu trung gian (Cú pháp InputBox của v2)
     ib := InputBox("Nhập chuỗi tiếng Việt có dấu vào đây:", "Bộ gõ VBA ChrW", "w400 h130")
